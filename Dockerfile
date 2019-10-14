@@ -1,42 +1,20 @@
-FROM: ubuntu:16.04
+FROM ubuntu:16.04
 
-MAINTAINER antimodes201 (
+MAINTAINER antimodes201
 
 # quash warnings
 ARG DEBIAN_FRONTEND=noninteractive
 
 USER root
 
-dpkg --add-architecture i386
-apt update 
-apt install mailutils \ 
-postfix \
-curl \ 
-wget \
-file \
-bzip2 \
-gzip \
-unzip \
-bsdmainutils \
-python \
-util-linux \
-ca-certificates \
-binutils \
-bc \
-jq \
-tmux \
-lib32gcc1 \
-libstdc++6 \
-libstdc++6:i386 \
-
-
 # Set some Variables
 ENV BRANCH "public"
 ENV INSTANCE_NAME "default"
-
+ENV GAME_PORT "28015"
+ENV QUERY_PORT "28016"
 
 # dependencies
-RUN dpkg --add-architecture i386
+RUN dpkg --add-architecture i386 && \
 	apt-get update && \
 	apt-get install -y --no-install-recommends \
     wget \
@@ -59,7 +37,7 @@ RUN dpkg --add-architecture i386
 	bc \
 	jq \
 	tmux \	
-    rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/*
 
 # add steam user	
 RUN adduser \
@@ -68,22 +46,22 @@ RUN adduser \
     --shell /bin/bash \
     steam && \
     usermod -G tty steam \
-	mkdir -p /rust \
-	chown steam:steam /rust
+	&& mkdir -p /rust \
+	&& chown steam:steam /rust
 
 USER steam
 RUN cd /rust && \
 	wget -O linuxgsm.sh https://linuxgsm.sh && chmod +x linuxgsm.sh && bash linuxgsm.sh rustserver \
-	/rust/rustserver install
+	&& /rust/rustserver auto-install
 
 	
 ADD start.sh /rust/start.sh
 
 # Expose some port
-EXPOSE 28015/tcp
-EXPOSE 28015/udp
-EXPOSE 28016/tcp
-EXPOSE 28016/udp
+EXPOSE ${GAME_PORT}/tcp
+EXPOSE ${GAME_PORT}/udp
+EXPOSE ${QUERY_PORT}/tcp
+EXPOSE ${QUERY_PORT}/udp
 
 # Make a volume
 # side note, maybe make the entire directory persistent to lower boot time?
