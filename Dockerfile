@@ -36,6 +36,7 @@ RUN dpkg --add-architecture i386 && \
         binutils \
         bc \
         jq \
+		python3 \
         tmux \
     && rm -rf /var/lib/apt/lists/*
 
@@ -47,13 +48,14 @@ RUN adduser \
     steam && \
     usermod -G tty steam \
         && mkdir -p /rust \
+		&& mkdir -p /scripts \
         && chown steam:steam /rust
 
 USER steam
 RUN cd /rust && \
         wget -O linuxgsm.sh https://linuxgsm.sh && chmod +x linuxgsm.sh && bash linuxgsm.sh rustserver
 
-ADD start.sh /rust/start.sh
+ADD start.sh /scripts/start.sh
 
 # Expose some port
 EXPOSE ${GAME_PORT}/tcp
@@ -62,7 +64,7 @@ EXPOSE ${QUERY_PORT}/tcp
 EXPOSE ${QUERY_PORT}/udp
 
 # Make a volume
-# side note, maybe make the entire directory persistent to lower boot time?
-VOLUME /rust
+# contains serverfiles, configs, world saves
+VOLUME /rust/serverfiles
 
-CMD ["/rust/start.sh"]
+CMD ["/scripts/start.sh"]
